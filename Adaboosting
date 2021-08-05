@@ -1,0 +1,83 @@
+import pandas as pd
+from sklearn.model_selection import GridSearchCV
+import numpy as np
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+
+print("\n\nStarting.\n")
+trainD = pd.HDFStore('train_pca.h5')
+testD = pd.HDFStore('test_pca.h5')
+
+# Splitting Data
+dataX = trainD['data']
+dataY = trainD['labels']
+
+testX = testD['data']
+testY = testD['labels']
+print("Data splitting finished. \n")
+
+# Fit Data (train)
+bdt_real = AdaBoostClassifier(DecisionTreeClassifier(max_depth=23),n_estimators=127,learning_rate=1)
+bdt_discrete = AdaBoostClassifier(DecisionTreeClassifier(max_depth=23),n_estimators=127,learning_rate=1,algorithm="SAMME")
+
+bdt_real.fit(dataX,dataY)
+bdt_discrete.fit(dataX,dataY)
+print("Train finished.\n")
+
+
+#real_test_errors = []
+#discrete_test_errors = []
+
+#for real_test_predict, discrete_train_predict in zip(
+ #      bdt_real.staged_predict(testX), bdt_discrete.staged_predict(testX)):
+ # real_test_errors.append(
+ #      1. - accuracy_score(testY,real_test_predict))
+ # discrete_test_errors.append(
+ #      1. - accuracy_score(testY,discrete_train_predict))
+#print(real_test_errors)
+#print(discrete_test_errors)
+
+#def myMin(list1):
+#    min = list1[0]
+#    for x in list1:
+#        if x < min:
+ #           min = x
+ #   return min
+#print(myMin(real_test_errors))
+#print(myMin(discrete_test_errors))
+
+
+
+
+# Prediction
+adb1_predict = bdt_real.predict(testX)
+adb2_predict = bdt_discrete.predict(testX)
+print("Prediction finished.\n Result: \n", adb1_predict)
+print("Prediction finished.\n Result: \n", adb2_predict)
+
+
+# Error Calculation
+count = 0
+total = 0
+
+for i, j in zip(adb1_predict, testY):
+   total += 1
+   if i == j:
+       count += 1
+
+print("Total length: ", total)
+print('Finished count: ', count)
+print("Accuracy: ", float(count / total))
+
+count1 = 0
+total1 = 0
+
+for i, j in zip(adb2_predict, testY):
+   total1 += 1
+   if i == j:
+       count1 += 1
+
+print("Total length: ", total1)
+print('Finished count: ', count1)
+print("Accuracy: ", float(count1 / total1))
